@@ -1,0 +1,29 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract Lottery {
+    address[] public players;
+    address public recentWinner;
+    uint256 public ticketPrice;
+
+    constructor(uint256 _ticketPrice) {
+        ticketPrice = _ticketPrice;
+    }
+
+    function buyTicket() public payable {
+        require(msg.value == ticketPrice, "Incorrect ticket price");
+        players.push(msg.sender);
+    }
+
+    function drawWinner() public {
+        require(players.length > 0, "No players in the lottery");
+        uint256 index = random() % players.length;
+        recentWinner = players[index];
+        payable(recentWinner).transfer(address(this).balance);
+        delete players;
+    }
+
+    function random() private view returns (uint256) {
+        return uint256(keccak256(abi.encodePacked(block.difficulty, block.timestamp, players)));
+    }
+}
